@@ -3,19 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
+using lab05.DAL.MSSSQL;
 
 namespace lab05.DAL
 {
     public class MSSQLService : IDbService
     {
-        private const string CONNECTION_STRING = "Data Source=db-mssql;Initial Catalog=s16536;Integrated Security=True";
+        private const string ConnectionString = "Data Source=db-mssql;Initial Catalog=s16536;Integrated Security=True";
         
-        private const string SELECT_SQL = "select FirstName, LastName, BirthDate, Semester, Name from Student s left join Enrollment e on s.IdEnrollment = e.IdEnrollment left join Studies studies on e.IdStudy = studies.IdStudy";
+        private const string SelectSql = "select FirstName, LastName, BirthDate, Semester, Name from Student s left join Enrollment e on s.IdEnrollment = e.IdEnrollment left join Studies studies on e.IdStudy = studies.IdStudy";
 
-        public void AddStudent(Student student)
+        public Enrollment AddStudent(Student student)
         {
-            throw new NotImplementedException();
+            return new AddStudentService().AddStudent(ConnectionString, student);
         }
 
         public void DeleteStudent(int id)
@@ -25,22 +25,21 @@ namespace lab05.DAL
 
         public Student GetStudent(string id)
         {
-            //sql injection nie dziala
             var command = new SqlCommand
             {
-                CommandText = SELECT_SQL + " where IndexNumber = @id;"
+                CommandText = SelectSql + " where IndexNumber = @id;"
             };
             command.Parameters.AddWithValue("id", id);
-            return getResults(command).FirstOrDefault();
+            return GetResults(command).FirstOrDefault();
         }
 
         public IEnumerable<Student> GetStudents()
         {
             var command = new SqlCommand
             {
-                CommandText = SELECT_SQL + ";"
+                CommandText = SelectSql + ";"
             };
-            return getResults(command);
+            return GetResults(command);
         }
 
         public void UpdateStudent(int id, Student student)
@@ -48,10 +47,10 @@ namespace lab05.DAL
             throw new NotImplementedException();
         }
 
-        private IEnumerable<Student> getResults(SqlCommand command)
+        private IEnumerable<Student> GetResults(SqlCommand command)
         {
             var list = new List<Student>();
-            using (var connection = new SqlConnection(CONNECTION_STRING))
+            using (var connection = new SqlConnection(ConnectionString))
             using (command)
             {
                 command.Connection = connection;
@@ -59,14 +58,14 @@ namespace lab05.DAL
                 var dataReader = command.ExecuteReader();
                 while (dataReader.Read())
                 {
-                    var student = addStudent(dataReader);
+                    var student = CreateStudent(dataReader);
                     list.Add(student);
                 }
             }
             return list;
         }
 
-        private Student addStudent(SqlDataReader dataReader)
+        private Student CreateStudent(SqlDataReader dataReader)
         {
             return new Student()
             {

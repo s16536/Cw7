@@ -12,7 +12,7 @@ namespace lab05.Models
         public string LastName { get; set; }
         public string IndexNumber { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public String Faculty { get; set; }
+        public string Faculty { get; set; }
         public int Semester { get; set; }
     }
 }
