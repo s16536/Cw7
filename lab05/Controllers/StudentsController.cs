@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using lab05.DAL;
 using lab05.Models;
+using lab05.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace lab05.Controllers
@@ -13,23 +13,23 @@ namespace lab05.Controllers
     [Route("api/students")]
     public class StudentsController : ControllerBase
     {
-        private readonly IDbService _dbService;
+        private readonly IStudentsDbService _studentsDbService;
 
-        public StudentsController(IDbService dbService)
+        public StudentsController(IStudentsDbService studentsDbService)
         {
-            _dbService = dbService;
+            _studentsDbService = studentsDbService;
         }
 
         [HttpGet]
         public IActionResult GetStudent()
         {
-            return Ok(_dbService.GetStudents());
+            return Ok(_studentsDbService.GetStudents());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetStudent(string id)
         {
-            var student = _dbService.GetStudent(id);
+            var student = _studentsDbService.GetStudent(id);
             if (student == null)
             {
                 return NotFound("Nie znaleziono studenta"); ;
@@ -41,21 +41,21 @@ namespace lab05.Controllers
         public IActionResult CreateStudent(Student student)
         {
             student.IndexNumber = $"s{new Random().Next(1, 20000)}";
-            _dbService.AddStudent(student);
+            _studentsDbService.AddStudent(student);
             return Ok(student);
         }
 
         [HttpPut("{id}")]
         public IActionResult UpdateStudent(int id, Student student)
         {
-            _dbService.UpdateStudent(id, student);
+            _studentsDbService.UpdateStudent(id, student);
             return Ok("Aktualizacja dokończona");
         }
 
         [HttpDelete("{id}")]
         public IActionResult DeleteStudent(int id)
         {
-            _dbService.DeleteStudent(id);
+            _studentsDbService.DeleteStudent(id);
             return Ok("Usuwanie ukończone");
         }
     }

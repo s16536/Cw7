@@ -1,10 +1,10 @@
-﻿using lab05.Models;
-using System;
+﻿using System;
 using System.Data.SqlClient;
+using lab05.Models;
 
-namespace lab05.DAL.MSSSQL
+namespace lab05.Services
 {
-    public class AddStudentService
+    public class ServerDbAddStudentService
     {
         private Student _student;
         private SqlCommand _command;

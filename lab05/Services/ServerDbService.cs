@@ -1,14 +1,13 @@
-﻿using lab05.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using lab05.DAL.MSSSQL;
 using lab05.DTOs.Requests;
+using lab05.Models;
 
-namespace lab05.DAL
+namespace lab05.Services
 {
-    public class MSSQLService : IDbService
+    public class ServerDbService : IStudentsDbService
     {
         private const string ConnectionString = "Data Source=db-mssql;Initial Catalog=s16536;Integrated Security=True";
         
@@ -16,7 +15,7 @@ namespace lab05.DAL
 
         public Enrollment AddStudent(Student student)
         {
-            return new AddStudentService().AddStudent(ConnectionString, student);
+            return new ServerDbAddStudentService().AddStudent(ConnectionString, student);
         }
 
         public void DeleteStudent(int id)

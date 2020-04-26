@@ -1,8 +1,8 @@
 ﻿using System.Net;
-using lab05.DAL;
 using lab05.DTOs;
 using lab05.DTOs.Requests;
 using lab05.Models;
+using lab05.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace lab05.Controllers
@@ -10,11 +10,11 @@ namespace lab05.Controllers
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
-        private readonly IDbService _dbService;
+        private readonly IStudentsDbService _studentsDbService;
 
-        public EnrollmentsController(IDbService dbService)
+        public EnrollmentsController(IStudentsDbService studentsDbService)
         {
-            _dbService = dbService;
+            _studentsDbService = studentsDbService;
         }
 
         [HttpPost]
@@ -31,7 +31,7 @@ namespace lab05.Controllers
 
             };
 
-            var enrollment = _dbService.AddStudent(student);
+            var enrollment = _studentsDbService.AddStudent(student);
             if (enrollment == null)
             {
                 return BadRequest();
@@ -45,7 +45,7 @@ namespace lab05.Controllers
         [Route("api/enrollments/promotions")]
         public IActionResult PromoteStudents(PromoteStudentsRequest request)
         {
-            var enrollment = _dbService.PromoteStudents(request);
+            var enrollment = _studentsDbService.PromoteStudents(request);
             if (enrollment == null)
             {
                 return NotFound();
