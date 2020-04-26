@@ -1,11 +1,12 @@
-﻿using lab05.DAL;
+﻿using System.Net;
+using lab05.DAL;
 using lab05.DTOs;
+using lab05.DTOs.Requests;
 using lab05.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace lab05.Controllers
 {
-    [Route("api/enrollments")]
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
@@ -17,6 +18,7 @@ namespace lab05.Controllers
         }
 
         [HttpPost]
+        [Route("api/enrollments")]
         public IActionResult EnrollStudent(EnrollStudentRequest request)
         {
             var student = new Student()
@@ -36,6 +38,20 @@ namespace lab05.Controllers
             }
 
             return Ok(enrollment);
+        }
+
+
+        [HttpPost]
+        [Route("api/enrollments/promotions")]
+        public IActionResult PromoteStudents(PromoteStudentsRequest request)
+        {
+            var enrollment = _dbService.PromoteStudents(request);
+            if (enrollment == null)
+            {
+                return NotFound();
+            }
+
+            return Created("api/enrollments/promotions", enrollment);
         }
 
     }

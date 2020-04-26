@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using lab05.DAL.MSSSQL;
+using lab05.DTOs.Requests;
 
 namespace lab05.DAL
 {
@@ -45,6 +46,45 @@ namespace lab05.DAL
         public void UpdateStudent(int id, Student student)
         {
             throw new NotImplementedException();
+        }
+
+        public Enrollment PromoteStudents(PromoteStudentsRequest request)
+        {
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                connection.Open();
+                command.CommandText = "exec PromoteStudents @studies, @semester;";
+                command.Parameters.AddWithValue("studies", request.Studies);
+                command.Parameters.AddWithValue("semester", request.Semester);
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+
+                command.CommandText = "select * from Enrollment where IdStudy = (select max(IdStudy) from Studies where Name = @studies) AND Semester = @Semester + 1 order by IdEnrollment";
+
+                using (var dataReader = command.ExecuteReader())
+                {
+                    if (!dataReader.Read())
+                    {
+                        return null;
+                    }
+                    return new Enrollment()
+                    {
+                        IdEnrollment = (int) dataReader["IdEnrollment"],
+                        IdStudy = (int) dataReader["IdStudy"],
+                        Semester = (int) dataReader["Semester"],
+                        StartDate = (DateTime) dataReader["StartDate"]
+                    };
+
+                }
+            }
         }
 
         private IEnumerable<Student> GetResults(SqlCommand command)
