@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using lab05.DTOs.Requests;
+using lab05.Handler;
 using lab05.Models;
 using Microsoft.AspNetCore.Authentication;
 
@@ -96,9 +97,22 @@ namespace lab05.Services
             {
                 command.Connection = connection;
                 connection.Open();
-                command.CommandText = "select Role from Student where IndexNumber = @index and Password = @password;";
+                command.CommandText = "select Salt from Student where IndexNumber = @index";
                 command.Parameters.AddWithValue("index", request.Login);
-                command.Parameters.AddWithValue("password", request.Password);
+
+                var salt = "";
+                using (var dataReader = command.ExecuteReader())
+                {
+                    if (!dataReader.Read())
+                    {
+                        return null;
+                    }
+
+                    salt = dataReader["Salt"].ToString();
+                }
+
+                command.CommandText = "select Role from Student where IndexNumber = @index and Password = @password;";
+                command.Parameters.AddWithValue("password", PasswordHandler.CreateHash(request.Password, salt));
                 return Authenticate(command);
             };
         }
