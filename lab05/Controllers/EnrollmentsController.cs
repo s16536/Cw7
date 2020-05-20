@@ -3,11 +3,13 @@ using lab05.DTOs;
 using lab05.DTOs.Requests;
 using lab05.Models;
 using lab05.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace lab05.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "employee")]
     public class EnrollmentsController : ControllerBase
     {
         private readonly IStudentsDbService _studentsDbService;

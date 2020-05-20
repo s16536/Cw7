@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Claims;
 using lab05.DTOs.Requests;
 using lab05.Models;
 
@@ -84,6 +85,29 @@ namespace lab05.Services
 
                 }
             }
+        }
+
+        public Claim[] Login(LoginRequestDto request)
+        {
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                connection.Open();
+                command.CommandText = "select Role from Student where IndexNumber = @index and Password = @password;";
+                command.Parameters.AddWithValue("index", request.Login);
+                command.Parameters.AddWithValue("password", request.Password); 
+                var dataReader = command.ExecuteReader();
+                if(dataReader.Read())
+                {
+                    return new []
+                    {
+                        new Claim(ClaimTypes.Name, request.Login),
+                        new Claim(ClaimTypes.Role, dataReader["Role"].ToString())
+                    };
+                }
+            }
+            return null;
         }
 
         private IEnumerable<Student> GetResults(SqlCommand command)

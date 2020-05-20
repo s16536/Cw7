@@ -118,7 +118,8 @@ namespace lab05.Services
         private void AddStudent(Enrollment enrollment)
         {
             _command.CommandText =
-                "insert into Student values(@indexNumber, @firstName, @lastName, @birthDate, @idEnrollment);";
+                "insert into Student(IndexNumber, FirstName, LastName, BirthDate, IdEnrollment)" +
+                " values(@indexNumber, @firstName, @lastName, @birthDate, @idEnrollment);";
             _command.Parameters.AddWithValue("firstName", _student.FirstName);
             _command.Parameters.AddWithValue("lastName", _student.LastName);
             _command.Parameters.AddWithValue("birthDate", _student.DateOfBirth);
