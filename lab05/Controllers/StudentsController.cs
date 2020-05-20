@@ -71,9 +71,21 @@ namespace lab05.Controllers
         [Route("login")]
         public IActionResult Login(LoginRequestDto request)
         {
+            var claims = _studentsDbService.Login(request); 
+            return Authorize(claims);
+        }
 
-            var claims = _studentsDbService.Login(request);
-            if (claims == null)
+
+        [HttpPost("refresh-token/{token}")]
+        public IActionResult Login(string token)
+        {
+            var claims = _studentsDbService.Login(token);
+            return Authorize(claims);
+        }
+
+        private IActionResult Authorize(AuthenticationResult result)
+        {
+            if (result == null)
             {
                 return Unauthorized();
             }
@@ -83,15 +95,17 @@ namespace lab05.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
                 issuer: "Gakko",
-                audience:"Students", 
-                claims: claims,
+                audience: "Students",
+                claims: result.Claims,
                 expires: DateTime.Now.AddMinutes(10),
-                signingCredentials:creds
+                signingCredentials: creds
             );
             return Ok(new
             {
-                token= new JwtSecurityTokenHandler().WriteToken(token)
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                refreshToken = result.RefreshToken
             });
+
         }
     }
 }

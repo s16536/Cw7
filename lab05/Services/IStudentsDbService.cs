@@ -13,6 +13,7 @@ namespace lab05.Services
         public void DeleteStudent(int id);
         public void UpdateStudent(int id, Student student);
         public Enrollment PromoteStudents(PromoteStudentsRequest request);
-        public Claim[] Login(LoginRequestDto request);
+        public AuthenticationResult Login(LoginRequestDto request);
+        public AuthenticationResult Login(string request);
     }
 }

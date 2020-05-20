@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
 using lab05.DTOs.Requests;
 using lab05.Models;
+using Microsoft.AspNetCore.Authentication;
 
 namespace lab05.Services
 {
@@ -87,7 +89,7 @@ namespace lab05.Services
             }
         }
 
-        public Claim[] Login(LoginRequestDto request)
+        public AuthenticationResult Login(LoginRequestDto request)
         {
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand())
@@ -96,18 +98,52 @@ namespace lab05.Services
                 connection.Open();
                 command.CommandText = "select Role from Student where IndexNumber = @index and Password = @password;";
                 command.Parameters.AddWithValue("index", request.Login);
-                command.Parameters.AddWithValue("password", request.Password); 
-                var dataReader = command.ExecuteReader();
-                if(dataReader.Read())
-                {
-                    return new []
-                    {
-                        new Claim(ClaimTypes.Name, request.Login),
-                        new Claim(ClaimTypes.Role, dataReader["Role"].ToString())
-                    };
-                }
+                command.Parameters.AddWithValue("password", request.Password);
+                return Authenticate(command);
+            };
+        }
+
+        public AuthenticationResult Login(string token)
+        {
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                connection.Open();
+                command.CommandText = "select IndexNumber, Role from Student s " +
+                                      "left join RefreshToken r on  r.StudentID = s.IndexNumber " +
+                                      "where Token=@token and ValidTo > GETDATE();";
+                command.Parameters.AddWithValue("token", token);
+
+                return Authenticate(command);
             }
-            return null;
+        }
+
+        private AuthenticationResult Authenticate(SqlCommand command)
+        {
+            var result = new AuthenticationResult();
+            using (var dataReader = command.ExecuteReader())
+            {
+                if (!dataReader.Read())
+                {
+                    return null;
+                }
+
+                if (!command.Parameters.Contains("index"))
+                {
+                    command.Parameters.AddWithValue("index", dataReader["IndexNumber"].ToString());
+                }
+
+                result.Claims = new[]
+                {
+                    new Claim(ClaimTypes.Name, command.Parameters["index"].Value.ToString()),
+                    new Claim(ClaimTypes.Role, dataReader["Role"].ToString())
+                };
+            }
+
+            result.RefreshToken = Guid.NewGuid().ToString();
+            AddToken(command, result.RefreshToken);
+            return result;
         }
 
         private IEnumerable<Student> GetResults(SqlCommand command)
@@ -138,6 +174,15 @@ namespace lab05.Services
                 Faculty = dataReader["Name"].ToString(),
                 Semester = Int32.Parse(dataReader["Semester"].ToString())
             };
+        }
+
+        private void AddToken(SqlCommand command, string token)
+        {
+            command.CommandText =
+                "insert into RefreshToken(Token, StudentId, ValidTo) values (@newToken, @index, @validTo);";
+            command.Parameters.AddWithValue("newToken", token);
+            command.Parameters.AddWithValue("validTo", DateTime.Now.AddDays(1));
+            command.ExecuteNonQuery();
         }
     }
 }
